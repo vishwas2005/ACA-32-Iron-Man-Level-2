@@ -1,9 +1,22 @@
 var bg, backgroundImg;
+var score = 0
 
 function preload() {
   backgroundImg = loadImage("images/bg.jpg");
   Iron = loadImage("images/iron.png")
   Stone = loadImage("images/stone.png")
+  D = loadImage("images/diamond.png")
+  
+}
+
+function genD(){
+  di = createSprite(500,10,10,10)
+  di.x = random(100,900)
+  di.addImage(D)
+  di.scale = 0.4
+  di.velocityY = 4
+  di.lifetime = 180
+  diG.add(di)
 }
 
 function genS(){
@@ -15,8 +28,9 @@ function genS(){
   St.lifetime = 180
   StG.add(St)
 }
+
 function setup() {
-  createCanvas(1000, 600);
+  createCanvas(1000,550);
   bg = createSprite(580,300,1000,600);
   bg.addImage(backgroundImg)
   bg.velocityY = 4
@@ -24,9 +38,8 @@ function setup() {
   Man = createSprite(500,200,40,40)
   Man.addImage(Iron)
   Man.scale = 0.25
-  Man.debug = true
-  Man.setCollider("rectangle",100,0,200,400)
   StG = new Group()
+  diG = new Group()
 }
 
 function draw() {
@@ -47,11 +60,22 @@ function draw() {
 
   if(frameCount%40 == 0){
     genS()
-  }  
+  }
+  if(frameCount%100 == 0){
+    genD()
+  }   
  for(g = 0; g < StG.length; g+=1 ){
    h = StG.get(g)
    if(Man.isTouching(h)){
      Man.collide(h)
+   }
+ }
+ for(f = 0;f < diG.length;f += 1 ){
+  o = diG.get(f)
+   if(Man.isTouching(o)){
+     o.destroy()
+     score += 1
+     o = null
    }
  }
 
