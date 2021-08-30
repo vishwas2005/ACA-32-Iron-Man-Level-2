@@ -6,7 +6,17 @@ function preload() {
   Iron = loadImage("images/iron.png")
   Stone = loadImage("images/stone.png")
   D = loadImage("images/diamond.png")
-  
+  Sp = loadImage("images/spikes.png")
+}
+
+function genP(){
+  Spi = createSprite(500,10,10,10)
+  Spi.x = random(100,900)
+  Spi.addImage(Sp)
+  Spi.scale = 0.5
+  Spi.velocityY = 4
+  Spi.lifetime = 180
+  SpG.add(Spi)
 }
 
 function genD(){
@@ -38,8 +48,10 @@ function setup() {
   Man = createSprite(500,200,40,40)
   Man.addImage(Iron)
   Man.scale = 0.25
+  ground=createSprite(200,550,1900,10)
   StG = new Group()
   diG = new Group()
+  SpG = new Group()
 }
 
 function draw() {
@@ -63,14 +75,16 @@ function draw() {
   }
   if(frameCount%100 == 0){
     genD()
-  }   
- for(g = 0; g < StG.length; g+=1 ){
+    genP()
+  }  
+  Man.collide(ground) 
+ for(g = 0; g < StG.length; g+=1){
    h = StG.get(g)
    if(Man.isTouching(h)){
      Man.collide(h)
    }
  }
- for(f = 0;f < diG.length;f += 1 ){
+ for(f = 0;f < diG.length;f += 1){
   o = diG.get(f)
    if(Man.isTouching(o)){
      o.destroy()
@@ -78,7 +92,18 @@ function draw() {
      o = null
    }
  }
+ for(j = 0;j < SpG.length;j += 1){
+   k = SpG.get(j)
+   if(Man.isTouching(k)){
+      k.destroy()
+      k = null
+      score -= 5
+   }
+ }
 
   drawSprites();
-   
+   fill("white")
+   textSize(20)
+   stroke("blue")
+   text("Diamonds collected: "+score,15,30)
 }
