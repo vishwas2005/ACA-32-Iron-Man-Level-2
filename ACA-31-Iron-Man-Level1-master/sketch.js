@@ -1,135 +1,150 @@
-//Making Variables
+
 var bg, backgroundImg;
-var score = 0
+var platformImage, platformGroup;
+var ironMan, ironManImage;
+var diamondImage, diamondsGroup;
+var spikeImage, spikesGroup;
+var score = 0;//create variables for images, groups and sprites. Create score variable
+var gameState = "PLAY";
 
-//Preloading Images
 function preload() {
-  backgroundImg = loadImage("images/bg.jpg");
-  Iron = loadImage("images/iron.png")
-  Stone = loadImage("images/stone.png")
-  D = loadImage("images/diamond.png")
-  Sp = loadImage("images/spikes.png")
+	backgroundImg = loadImage("images/bg.jpg");
+	ironManImage = loadImage('images/iron.png');
+	platformImage = loadImage('images/stone.png');
+	diamondImage = loadImage('images/diamond.png');
+	spikeImage = loadImage('images/spikes.png');//load necessary images for graphics
 }
 
-//For generating Spikes
-function genP(){
-  Spi = createSprite(500,10,10,10)
-  Spi.x = random(100,900)
-  Spi.addImage(Sp)
-  Spi.scale = 0.5
-  Spi.velocityY = 4
-  Spi.lifetime = 180
-  SpG.add(Spi)
-}
-
-//For generating diamonds
-function genD(){
-  di = createSprite(500,10,10,10)
-  di.x = random(100,900)
-  di.addImage(D)
-  di.scale = 0.4
-  di.velocityY = 4
-  di.lifetime = 180
-  diG.add(di)
-}
-
-//For generating stones
-function genS(){
-  St = createSprite(500,10,10,60)
-  St.x = random(100,900)
-  St.addImage(Stone)
-  St.scale = 0.6
-  St.velocityY = 4
-  St.lifetime = 180
-  StG.add(St)
-}
-
-//Setting all the characters on the canvas
 function setup() {
-  //Adding the background
-  createCanvas(1000,550);
-  bg = createSprite(580,300,1000,600);
-  bg.addImage(backgroundImg)
-  bg.velocityY = 4
-  bg.scale = 2
+	createCanvas(1000, 600);
+	bg = createSprite(580, 300);
+	bg.addImage(backgroundImg);
+	bg.scale = 2;
+	bg.velocityY = 8;//make bg sprite and set its velocity to move it
+  // ground=createSprite(200,600,1900,10)
+	ironMan = createSprite(450, 300);
+	ironMan.addImage(ironManImage);
+	ironMan.scale = 0.3;
+	ironMan.setCollider("rectangle", 100, 0, 200, 400);//create Iron Man sprite and set its collider
+  
+  ground=createSprite(200,600,1900,10)
 
-  //Adding th player - Iron Man
-  Man = createSprite(500,200,40,40)
-  Man.addImage(Iron)
-  Man.scale = 0.25
-  ground=createSprite(200,550,1900,10)
-
-  //All the groups 
-  StG = new Group()
-  diG = new Group()
-  SpG = new Group()
+	platformGroup = new Group();
+	diamondsGroup = new Group();
+	spikesGroup = new Group();//create all necessary groups
 }
 
-//Setting up how the game will function
 function draw() {
-  //Repeating the background
-  if (bg.y > 600){
-     bg.y = 300
-   }
- 
-  //Controlling the player - Iron Man
-  if(keyDown("up")){
-     Man.velocityY = -6
-   }
 
-  if(keyDown("left")){
-     Man.x -= 6
-   }
-  if(keyDown("right")){
-     Man.x += 6
-   }
-  //Slowly increasing gravity
-  Man.velocityY += 0.2 
+	if (gameState === "PLAY") {
+		if (bg.y > 700) {
+			bg.y = bg.height / 15;
+		}//move the bg
+		if (keyDown('up') || keyDown('w')) {
+			ironMan.velocityY = -10;
+		}
+		if (keyDown('left')) {
+			ironMan.x = ironMan.x - 5;
+		}
+		if (keyDown('right')) {
+			ironMan.x = ironMan.x + 5;
+		}//movement controls
 
-  //Generating the obstacles
-  if(frameCount%40 == 0){
-     genS()
-   }
-  if(frameCount%100 == 0){
-     genD()
-     genP()
-   }
-  Man.collide(ground)
-  //For Iron man to collide and stand on stones 
- for(g = 0; g < StG.length; g+=1){
-     h = StG.get(g)
-     if(Man.isTouching(h)){
-       Man.collide(h)
-     }
-   }
+		ironMan.velocityY = ironMan.velocityY + 0.5;//Gravity for main sprite
 
-  //For Iron man to collect coins  
- for(f = 0;f < diG.length;f += 1){
-     o = diG.get(f)
-     if(Man.isTouching(o)){
-       o.destroy()
-       score += 1
-       o = null
-     }
-   }
-  
+		generatePlatforms();//call func to generate platforms
 
-  //For reducing points if hit by Spikes 
- for(j = 0;j < SpG.length;j += 1){
-     k = SpG.get(j)
-     if(Man.isTouching(k)){
-       k.destroy()
-       k = null
-       score -= 5
-     }
-   }
+		for (var i = 0; i < platformGroup.length; i++) {
+			var temp = platformGroup.get(i);
 
-  //Drawing all the characters
-  drawSprites();
+			if (temp.isTouching(ironMan)) {
+				ironMan.collide(temp);
+			}
+		}//iron Man collides with platforms
 
-  //To show the score on the screen
-   fill("white")
-   textSize(20)
-   stroke("blue")
-   text("Diamonds collected: "+score,15,30)
+		generateDiamonds();
+
+		for (var i = 0; i < (diamondsGroup).length; i++) {
+			var temp = (diamondsGroup).get(i);
+
+			if (temp.isTouching(ironMan)) {
+				score++;
+				temp.destroy();
+				temp = null;//if iron man touches diamond - increase score by 1, destroy diamond so that it disappears and set its value in group as null
+			}
+		}
+    ironMan.collide(ground)
+
+		generateSpikes();
+
+		for (var i = 0; i < (spikesGroup).length; i++) {
+			var temp = (spikesGroup).get(i);
+
+			if (temp.isTouching(ironMan)) {
+				score = score - 5;//if iron Man touches spikes, score decreases by 5
+				temp.destroy();
+				temp = null;
+			}
+
+		}
+
+		if (score <= -10 || ironMan.y > 650) {
+			gameState = "END";
+		}
+	}
+
+	if (gameState === "END") {
+		bg.velocityY = 0;
+		ironMan.velocityY = 0;
+		diamondsGroup.setVelocityYEach(0);
+		spikesGroup.setVelocityYEach(0);
+		platformGroup.setVelocityYEach(0);
+		diamondsGroup.setLifetimeEach(-1);
+		spikesGroup.setLifetimeEach(-1);
+		platformGroup.setLifetimeEach(-1);
+
+	}
+
+	drawSprites();
+	textSize(20);
+	fill("white")
+	text("Diamonds Collected: " + score, 400, 50);
+}
+
+function generatePlatforms() {
+	if (frameCount % 60 === 0) {
+		var brick = createSprite(1200, -10);
+		brick.setCollider('rectangle', 0, 0, 220, 40);
+		brick.x = random(50, 850);
+		brick.addImage(platformImage);
+		brick.velocityY = 4.5;
+		brick.lifetime = 200;
+		platformGroup.add(brick);
+	}
+}
+
+function generateDiamonds() {
+	if (frameCount % 80 === 0) {
+		var diamond = createSprite(1200, -10);
+		diamond.addAnimation("diamond", diamondImage);
+		diamond.setCollider('rectangle', 0, 10, 100, 80);
+		diamond.x = random(50, 850);
+		diamond.scale = 0.5;
+		diamond.velocityY = 4.5;
+		diamond.lifetime = 200;
+		diamondsGroup.add(diamond);
+	}
+}
+
+function generateSpikes() {
+	if (frameCount % 140 === 0) {
+		var spikes = createSprite(1200, -10);
+		spikes.addAnimation("spike", spikeImage);
+		spikes.x = random(50, 850);
+		spikes.setCollider('rectangle', 0, 0, 70, 70);
+		spikes.scale = 0.5;
+		spikes.velocityY = 4;
+		spikes.lifetime = 200;
+		spikesGroup.add(spikes);
+	}
 }
